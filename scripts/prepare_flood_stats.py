@@ -112,7 +112,8 @@ def main():
             "event_definition": "events = aggregated district-and-date entries; records = underlying reports merged into them",
             "district_assignment": "by Adm2 name (not by coordinates); 'Moneragala' aliased to geoBoundaries 'Monaragala'",
             "year_range": [all_years[0], all_years[-1]],
-            "licence_status": "DesInventar redistribution terms UNRESOLVED; do not publish",
+            "attribution": "Disaster Management Centre (DMC), Sri Lanka, via DesInventar; published by UNDRR on HDX under CC BY (2016 export); GFID copy used here covers later years. Aggregated by district and year by LankaResilience; no endorsement implied.",
+            "licence_status": "CC BY per HDX/UNDRR for the 2016 export; applied to later records by inference, not confirmed in writing. See docs/DATA_SOURCES.md",
         },
         "unassigned": dict(unassigned),
         "districts": {
