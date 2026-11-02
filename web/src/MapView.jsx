@@ -68,12 +68,23 @@ export default function MapView({
     // where to get tiles, fonts and icons. The API key travels in the URL.
     const styleUrl = `https://maps.geo.${REGION}.amazonaws.com/v2/styles/${STYLE_NAME}/descriptor?key=${API_KEY}`;
 
-    const map = new maplibregl.Map({
-      container: containerRef.current,
-      style: styleUrl,
-      center: SRI_LANKA_CENTER,
-      zoom: INITIAL_ZOOM,
-    });
+    // The constructor throws if the browser cannot provide WebGL2 (for example
+    // with graphics acceleration turned off). Catch it so the rest of the page,
+    // including the dashboard, keeps working instead of the app going blank.
+    let map;
+    try {
+      map = new maplibregl.Map({
+        container: containerRef.current,
+        style: styleUrl,
+        center: SRI_LANKA_CENTER,
+        zoom: INITIAL_ZOOM,
+      });
+    } catch {
+      setError(
+        "This map needs WebGL2, which is not available in this browser. Turn on hardware (graphics) acceleration in the browser settings, or try another browser such as Microsoft Edge or Firefox."
+      );
+      return;
+    }
 
     map.addControl(new maplibregl.NavigationControl(), "top-right");
     mapRef.current = map;
