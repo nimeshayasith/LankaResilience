@@ -1,0 +1,72 @@
+name: Deploy frontend
+
+on:
+  push:
+    branches: [main]
+  workflow_dispatch: # manual "Run workflow" button
+
+# Only one deploy at a time; a newer push waits instead of racing the older one.
+concurrency:
+  group: deploy
+  cancel-in-progress: false
+
+# id-token: write lets GitHub request a short-lived OIDC token for AWS, so no
+# AWS access keys are stored in GitHub. contents: read is enough to check out the code.
+permissions:
+  id-token: write
+  contents: read
+
+jobs:
+  deploy:
+    runs-on: ubuntu-latest
+    defaults:
+      run:
+        working-directory: web
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: npm
+          cache-dependency-path: web/package-lock.json
+
+      - run: npm ci
+
+      # Vite bakes VITE_ variables into the JavaScript at build time. The key is
+      # therefore visible in the published site; its referrer restriction and
+      # map-only permissions are what protect it.
+      - name: Build
+        run: npm run build
+        env:
+          VITE_AWS_LOCATION_API_KEY: ${{ secrets.VITE_AWS_LOCATION_API_KEY }}
+          VITE_AWS_LOCATION_REGION: ${{ vars.LOCATION_REGION }}
+          VITE_AWS_LOCATION_STYLE: ${{ vars.LOCATION_STYLE }}
+
+      - uses: aws-actions/configure-aws-credentials@v4
+        with:
+          role-to-assume: ${{ vars.AWS_ROLE_ARN }}
+          aws-region: ${{ vars.AWS_REGION }}
+
+      # Hashed asset files never change, so browsers may cache them for a year.
+      # --exclude "data/*" keeps hand-uploaded data files safe from --delete
+      # (excluded paths are neither uploaded nor deleted).
+      - name: Sync assets
+        run: >
+          aws s3 sync dist/ s3://${{ vars.S3_BUCKET }}
+          --delete
+          --exclude "data/*"
+          --exclude "index.html"
+          --cache-control "public,max-age=31536000,immutable"
+
+      # index.html points at the hashed files, so it must always be revalidated.
+      - name: Upload index.html
+        run: >
+          aws s3 cp dist/index.html s3://${{ vars.S3_BUCKET }}/index.html
+          --cache-control "no-cache"
+
+      - name: Invalidate CloudFront
+        run: >
+          aws cloudfront create-invalidation
+          --distribution-id ${{ vars.CLOUDFRONT_DISTRIBUTION_ID }}
+          --paths "/*"
