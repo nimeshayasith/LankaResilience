@@ -1,7 +1,7 @@
 # Data sources, licences and attribution
 
-Status of each dataset. **No dataset marked UNRESOLVED or UNVERIFIED is cleared for public redistribution** (GitHub, S3, public app).
-Last updated: 2026-11-02. Nothing here is legal advice.
+Status of each dataset. **No dataset marked UNRESOLVED or UNVERIFIED is cleared for public redistribution** (GitHub, S3, public app), except where a decision below says otherwise.
+Last updated: 2026-11-02 (DesInventar decision recorded). Nothing here is legal advice.
 
 Legend: CONFIRMED = read in the source text by the assistant; REPORTED = reported by the project owner after reading the official page, not independently checked by the assistant; UNRESOLVED = open question.
 
@@ -23,8 +23,11 @@ Legend: CONFIRMED = read in the source text by the assistant; REPORTED = reporte
 ## 3. DesInventar (inside GFID; planned source of the flood layer)
 - Planned use: DesInventar rows only (1,717 with a matching official district name; 1 row has `Adm2` = `NA`, unknown district).
 - **REPORTED (project owner):** The official portal states that database contributions belong to their respective contributing organisations.
-- **UNRESOLVED:** The redistribution licence for the specific Sri Lankan dataset is unverified. The assistant could not read the DesInventar site (timeouts).
-- Status: **not cleared for public redistribution.** Processed flood statistics must not be published until reuse terms are confirmed. Fallback: show the flood layer in the demo video only.
+- **CONFIRMED (HDX API record read by the assistant, 2026-11-02):** UNDRR publishes "Disaster loss and damage dataset for Sri Lanka" on the Humanitarian Data Exchange (https://data.humdata.org/dataset/disaster-loss-and-damage-dataset-for-sri-lanka) with licence **Creative Commons Attribution International (CC BY, id `cc-by`)**. Its stated data source is the **Disaster Management Centre (DMC), Ministry of Disaster Management**, the owner of the data. Supporting evidence only (not read directly): a GFDRR catalogue record lists it as CC-BY-4.0.
+- **Version gap (UNRESOLVED, accepted risk):** the HDX file is a **2016 export**. The GFID copy used here runs to 2020. The CC BY label applies directly to the older records; applying it to the later ones is an inference, not a written confirmation. Written confirmation from DMC/UNDRR has not been requested or received.
+- **Decision (project owner, 2026-11-02): publish the district-by-year aggregates under CC BY with attribution**, with the version gap stated in the About panel and README.
+- Required attribution (CC BY): credit DMC (data owner) and UNDRR (publisher), link to the HDX page and the licence, and state that the data was aggregated by district and year (a change). No endorsement by DMC, UNDRR or USGS may be implied.
+- Status: **published on the basis of CC BY (HDX/UNDRR), version gap noted.** The raw rows are still not redistributed; only per-district, per-year totals are. `web/public/data/flood_stats.json` stays git-ignored and is uploaded to S3 by the project owner.
 
 ## 4. District boundaries for the public app: geoBoundaries Sri Lanka ADM2
 - **CONFIRMED** (API metadata, www.geoboundaries.org/api/current/gbOpen/LKA/ADM2/): licence "Open Data Commons Open Database License 1.0"; source "OpenStreetMap, Wambacher"; year represented 2017; built Dec 2023; 25 units. The geoBoundaries homepage says CC BY 4.0; this conflict is **UNRESOLVED**, so the stricter ODbL reading is used.
@@ -33,7 +36,7 @@ Legend: CONFIRMED = read in the source text by the assistant; REPORTED = reporte
 - geoBoundaries asks for a prominent "geoBoundaries" credit with a link and, in written works, citation of Runfola et al. (2020), PLoS ONE 15(4): e0231866.
 - Status: **attribution and share-alike obligations still to be assessed**; not cleared.
 - **Downloaded and validated (2026-11-02):** file `data/raw/geoboundaries/LKA_ADM2_simplified.geojson` (geoBoundaries' own pre-simplified geometry, unmodified; SHA-256 and details in `data/raw/geoboundaries/PROVENANCE.md`). 25 districts, all vertices inside Sri Lanka's bounding box, no unclosed rings. 24 of 25 names match the flood data after removing " District"; "Monaragala" (geoBoundaries) vs "Moneragala" (flood data) is handled by an explicit alias at processing time, not by editing the file. Interior-point cross-check against SLNSDI district boundaries: 25 of 25 passed.
-- **In the app:** byte-identical copy at `web/public/data/districts.geojson` (git-ignored). Used for district outlines, hover and selection only. The app does not yet show the required ODbL/geoBoundaries attribution notice; this must be added before any public deploy.
+- **In the app:** byte-identical copy at `web/public/data/districts.geojson` (git-ignored). Used for district outlines, hover and selection only. The About panel now shows the ODbL notice, the geoBoundaries credit and link, and the Runfola et al. citation. The file is geoBoundaries' own unmodified simplified download (SHA-256 in PROVENANCE.md), so this project makes no changes that would create a derived database; it remains available from the source URL recorded there. Flood statistics are kept in a separate file and joined in the browser.
 
 ## 5. District boundaries and hospitals (local development only): SLNSDI
 - Publisher: Sri Lanka National Spatial Data Infrastructure. Raw files and provenance in `data/raw/slnsdi/` (see `PROVENANCE.md` there).

@@ -7,15 +7,28 @@ export default function AboutPanel({ unassigned, yearRange }) {
 
       <h3>Flood data</h3>
       <p>
-        Historical flood entries come from the DesInventar sheet of the USGS Global Flood
-        Impacts Database (GFID), {yearRange[0]}–{yearRange[1]}. Entries are counted per
-        district using the district name in the source.
+        Historical flood entries come from the Disaster Management Centre (DMC), Ministry of
+        Disaster Management, Sri Lanka, recorded in the DesInventar system and distributed in
+        the USGS Global Flood Impacts Database (GFID), {yearRange[0]}–{yearRange[1]}. We
+        counted entries per district and year using the district name in the source; those
+        totals are our own aggregation, and the source organisations do not endorse this app.
       </p>
       <p>
-        <strong>Licence status: unresolved.</strong> USGS describes its GFID metadata as CC0,
-        but the redistribution terms for the underlying DesInventar data are not confirmed.
-        This build is for local development and demonstration only and must not be published
-        or deployed until those terms are confirmed.
+        The DMC&rsquo;s Sri Lanka data is published by UNDRR on the Humanitarian Data Exchange under{" "}
+        <a href="https://creativecommons.org/licenses/by/4.0/" target="_blank" rel="noreferrer">
+          Creative Commons Attribution (CC BY)
+        </a>
+        :{" "}
+        <a
+          href="https://data.humdata.org/dataset/disaster-loss-and-damage-dataset-for-sri-lanka"
+          target="_blank"
+          rel="noreferrer"
+        >
+          Disaster loss and damage dataset for Sri Lanka
+        </a>
+        . That published file is a 2016 export, while the GFID copy used here runs to{" "}
+        {yearRange[1]}; we apply the same terms to the later records but have not had that
+        confirmed in writing.
       </p>
 
       <h3>District boundaries</h3>

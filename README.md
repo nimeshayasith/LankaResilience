@@ -4,7 +4,7 @@
 
 An interactive map of Sri Lanka's 25 districts that shows how often historical flood events were reported in each district, 1974–2020. It is an entry for the AWS Builder Center "put data on a map" weekend challenge.
 
-> **Status: work in progress.** The app runs locally. It is not deployed yet, and there is no live URL. The flood statistics file is deliberately **not** in this repository (see [Data and licences](#data-and-licences)).
+> **Status: work in progress.** The app is deployed with GitHub Actions to a private S3 bucket behind CloudFront. The data files are deliberately **not** in this repository (see [Data and licences](#data-and-licences)); they are generated or downloaded locally and uploaded separately.
 
 ## What it does
 
@@ -37,8 +37,8 @@ Planned for deployment (not done yet): a private Amazon S3 bucket served through
 
 | Data | Source | Status |
 |---|---|---|
-| Flood events | DesInventar sheet of the [USGS Global Flood Impacts Database (GFID)](https://www.usgs.gov/) | **Redistribution terms unresolved.** USGS describes its GFID metadata as CC0, but the underlying DesInventar data has no confirmed redistribution licence. The processed statistics are therefore **not included in this repository** and must not be published until this is resolved. |
-| District boundaries | [geoBoundaries](https://www.geoboundaries.org) Sri Lanka ADM2 (boundary source: OpenStreetMap, Wambacher; year represented 2017) | Open Database License (ODbL) 1.0 per file metadata. Attribution and share-alike obligations are still being assessed. The boundary file is not included here yet. |
+| Flood events | Disaster Management Centre (DMC), Sri Lanka, via DesInventar, in the DesInventar sheet of the [USGS Global Flood Impacts Database (GFID)](https://doi.org/10.5066/P135ARGI) | Published by UNDRR on HDX under **CC BY**: [Disaster loss and damage dataset for Sri Lanka](https://data.humdata.org/dataset/disaster-loss-and-damage-dataset-for-sri-lanka). That file is a **2016 export**, while the GFID copy runs to 2020, so applying CC BY to the later records is an inference, not a written confirmation. The app shows only our own per-district, per-year totals. The statistics file is generated locally and is not stored in this repository. No endorsement by DMC, UNDRR or USGS is implied. |
+| District boundaries | [geoBoundaries](https://www.geoboundaries.org) Sri Lanka ADM2 (boundary source: OpenStreetMap, Wambacher; year represented 2017) | Open Database License (ODbL) 1.0 per file metadata. The app uses geoBoundaries' own simplified file unmodified and shows the required notice in its About panel. Get the file from the [geoBoundaries release](https://github.com/wmgeolab/geoBoundaries/raw/9469f09/releaseData/gbOpen/LKA/ADM2/geoBoundaries-LKA-ADM2_simplified.geojson). Flood statistics are kept in a separate file, so no derived database is created. |
 | Base map | Amazon Location Service | Provider attribution is shown on the map. |
 
 geoBoundaries: Runfola et al. (2020), PLoS ONE 15(4): e0231866. Contains information from geoBoundaries, which is made available under the [Open Database License](https://opendatacommons.org/licenses/odbl/1-0/).
