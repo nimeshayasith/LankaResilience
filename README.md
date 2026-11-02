@@ -4,7 +4,25 @@
 
 An interactive map of Sri Lanka's 25 districts that shows how often historical flood events were reported in each district, 1974–2020. It is an entry for the AWS Builder Center "put data on a map" weekend challenge.
 
-> **Status: work in progress.** The app is deployed with GitHub Actions to a private S3 bucket behind CloudFront. The data files are deliberately **not** in this repository (see [Data and licences](#data-and-licences)); they are generated or downloaded locally and uploaded separately.
+**Live demo: <https://d2dp41607pvuh1.cloudfront.net>**
+
+> The app is deployed by GitHub Actions to a private S3 bucket behind CloudFront. The data files are deliberately **not** in this repository (see [Data and licences](#data-and-licences)); they are generated or downloaded locally and uploaded separately.
+
+<!-- SCREENSHOTS: uncomment once the image files exist in docs/screenshots/
+## Screenshots
+
+| Overview | Year filter |
+|---|---|
+| ![Overview map and dashboard](docs/screenshots/01-overview.png) | ![Filtered to 2000-2010](docs/screenshots/02-year-filter.png) |
+
+| District detail | Mobile |
+|---|---|
+| ![Ratnapura district panel](docs/screenshots/03-district-panel.png) | ![Phone-width layout](docs/screenshots/04-mobile.png) |
+-->
+
+## Why this matters
+
+Decades of reported flood events exist as spreadsheets. This app puts them on a map by district and by year, so people can see where flooding has been reported most often and how that changes over time, with the sources and limits visible next to the numbers.
 
 ## What it does
 
@@ -28,10 +46,40 @@ The source field for "directly affected" people is empty for Sri Lanka, so it is
 
 - React 19 + Vite, plain JavaScript and CSS
 - MapLibre GL JS for the map
-- **Amazon Location Service** for the base map (Maps style served with an API key restricted by allowed referrers)
-- GeoJSON for boundaries; district statistics are joined in the browser
+- GeoJSON for boundaries; district statistics are joined in the browser, using feature-state to colour each district
+- No backend: the app is a static site
 
-Planned for deployment (not done yet): a private Amazon S3 bucket served through Amazon CloudFront with Origin Access Control, over HTTPS.
+## AWS architecture
+
+```mermaid
+flowchart LR
+    U["Browser"] -->|"HTTPS"| CF["Amazon CloudFront"]
+    CF -->|"Origin Access Control"| S3[("Amazon S3 (private bucket): app + data files")]
+    U -->|"map style, tiles, fonts (API key, allowed referrers)"| LOC["Amazon Location Service"]
+    GH["GitHub (push to main)"] --> GA["GitHub Actions: build"]
+    GA -->|"OIDC, short-lived credentials"| IAM["IAM role (one repo, one branch)"]
+    IAM --> S3
+    IAM -->|"invalidate cache"| CF
+```
+
+| Service | Role in this app | Why |
+|---|---|---|
+| **Amazon Location Service** | Serves the base map (style, vector tiles, fonts, sprites) that the district layer is drawn on. | Managed maps with no tile server to run. An API key restricted to this site's address and to map actions only is the simplest safe authentication for a public static page. |
+| **Amazon S3** | Holds the built app and the two data files in a private bucket. | Cheap, durable static hosting. Public access is blocked; only CloudFront can read it. |
+| **Amazon CloudFront** | Delivers the site over HTTPS, using Origin Access Control to read the private bucket. | HTTPS and caching, without making the bucket public. |
+| **IAM (OIDC)** | Lets GitHub Actions deploy with short-lived credentials. | No AWS access keys are stored in GitHub. The role trusts one repository and one branch and may only write to this bucket and invalidate this distribution. |
+
+The map API key is part of the public JavaScript, as with any browser map. Its protection is the referrer restriction and the map-only permissions, not secrecy.
+
+### Deploying
+
+Every push to `main` runs [.github/workflows/deploy.yml](.github/workflows/deploy.yml): install, build, sync `dist/` to S3, upload `index.html` with no-cache, then invalidate CloudFront. The `data/` prefix is excluded from the sync, so the data files uploaded by hand are never deleted. Settings are kept in GitHub repository variables (role ARN, bucket, distribution ID, regions, map style) and one secret (the map API key). No credentials are in the repository.
+
+To publish new data, upload the files to `data/` in the bucket and invalidate `/data/*`.
+
+### Cost and clean-up
+
+The site is a small static app, so S3 and CloudFront usage is minimal. Amazon Location Service is pay-per-use after any free allowance, so keep a budget alert. After the challenge, delete the CloudFront distribution, the bucket, the IAM role and identity provider, and the Location API key if you do not want them running.
 
 ## Data and licences
 
@@ -59,7 +107,8 @@ Full details and open questions: [docs/DATA_SOURCES.md](docs/DATA_SOURCES.md).
 ```
 web/            React + Vite app (src/, public/, index.html)
 scripts/        Data preparation (prepare_flood_stats.py)
-docs/           Data sources and licence register
+.github/        Deploy workflow (GitHub Actions)
+docs/           Data sources and licence register, screenshots
 data/           Local raw and processed data (git-ignored)
 CLAUDE.md       Project guide used while building with Claude Code
 ```
